@@ -4,6 +4,7 @@ const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const { protect, admin } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { uploadCloud } = require('../config/cloudinary');
 
 const {
   createNews,
@@ -41,8 +42,8 @@ router.route('/news/:id')
 
 router.patch('/news/:id/featured', toggleFeatured);
 
-// Upload image
-router.post('/upload', upload.single('image'), (req, res) => {
+// Upload image to Cloudinary
+router.post('/upload', uploadCloud.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({
       success: false,
@@ -53,7 +54,7 @@ router.post('/upload', upload.single('image'), (req, res) => {
     success: true,
     data: {
       filename: req.file.filename,
-      path: `/uploads/${req.file.filename}`
+      path: req.file.path // Cloudinary URL
     }
   });
 });
