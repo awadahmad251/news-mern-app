@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { toast } from 'react-toastify';
-import { FiUser, FiMail, FiLock, FiSave } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiSave, FiCamera } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import { Navigate } from 'react-router-dom';
@@ -9,6 +9,8 @@ const Profile = () => {
   const { user, isAuthenticated, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef(null);
   
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -24,6 +26,42 @@ const Profile = () => {
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+      const res = await authAPI.uploadAvatar(formData);
+      const avatarUrl = res.data.data.url;
+      setProfileData({ ...profileData, avatar: avatarUrl });
+      
+      // Auto-save the avatar
+      const updateRes = await authAPI.updateProfile({ ...profileData, avatar: avatarUrl });
+      updateUser(updateRes.data.data);
+      toast.success('Profile photo updated!');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to upload photo');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -107,16 +145,38 @@ const Profile = () => {
       {activeTab === 'profile' && (
         <form onSubmit={handleProfileUpdate} className="bg-white p-8 rounded-xl shadow-md">
           <div className="flex items-center gap-6 mb-8">
-            <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-              {profileData.avatar ? (
-                <img 
-                  src={profileData.avatar} 
-                  alt={profileData.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <FiUser size={40} className="text-gray-400" />
-              )}
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                {profileData.avatar ? (
+                  <img 
+                    src={profileData.avatar} 
+                    alt={profileData.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <FiUser size={40} className="text-gray-400" />
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute bottom-0 right-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors disabled:opacity-50"
+                title="Change photo"
+              >
+                {uploadingAvatar ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <FiCamera size={16} />
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
             </div>
             <div>
               <h2 className="text-xl font-semibold">{user?.name}</h2>
@@ -154,19 +214,6 @@ const Profile = () => {
                 disabled
               />
               <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 text-sm font-medium mb-2">
-                Avatar URL (optional)
-              </label>
-              <input
-                type="url"
-                value={profileData.avatar}
-                onChange={(e) => setProfileData({ ...profileData, avatar: e.target.value })}
-                placeholder="https://example.com/avatar.jpg"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500"
-              />
             </div>
           </div>
 

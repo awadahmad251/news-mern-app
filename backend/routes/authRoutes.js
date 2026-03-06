@@ -3,6 +3,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const { protect, admin } = require('../middleware/auth');
+const { uploadCloud } = require('../config/cloudinary');
 
 const {
   register,
@@ -32,5 +33,21 @@ router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
 router.put('/password', protect, changePassword);
 router.post('/register-admin', protect, admin, registerValidation, validate, registerAdmin);
+
+// Upload avatar
+router.post('/upload-avatar', protect, uploadCloud.single('avatar'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please upload an image'
+    });
+  }
+  res.status(200).json({
+    success: true,
+    data: {
+      url: req.file.path
+    }
+  });
+});
 
 module.exports = router;

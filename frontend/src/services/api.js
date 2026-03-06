@@ -37,7 +37,10 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
-  changePassword: (data) => api.put('/auth/password', data)
+  changePassword: (data) => api.put('/auth/password', data),
+  uploadAvatar: (formData) => api.post('/auth/upload-avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
 };
 
 // News APIs (User)
