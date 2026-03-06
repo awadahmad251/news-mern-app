@@ -43,7 +43,7 @@ const Register = () => {
       <div className="max-w-md w-full">
         <h1 className="text-3xl font-bold text-center mb-8">Create Account</h1>
         
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-md">
+        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-md" autoComplete="off">
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-medium mb-2">
               Name
@@ -53,6 +53,7 @@ const Register = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500"
+              autoComplete="off"
               required
             />
           </div>
@@ -66,6 +67,7 @@ const Register = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500"
+              autoComplete="new-email"
               required
             />
           </div>
@@ -78,6 +80,7 @@ const Register = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500"
               required
             />
@@ -91,6 +94,7 @@ const Register = () => {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary-500"
               required
             />
